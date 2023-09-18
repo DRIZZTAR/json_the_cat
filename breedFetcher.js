@@ -1,35 +1,28 @@
 const request = require('request');
 
-// Get the breed name from command-line arguments
-const breedName = process.argv[2];
+// Define a function named fetchBreedDescription
+const fetchBreedDescription = function(breedName, callback) {
+  // Construct the API endpoint URL with the specified breed name
+  const apiUrl = `https://api.thecatapi.com/v1/breeds/search?q=${breedName}`;
 
-// Check if the user provided a breed name
-if (!breedName) {
-  console.error('Please provide a breed name as a command-line argument.');
-  process.exit(1);
-}
-
-// Define the API endpoint URL with the query parameter for the specified breed
-const apiUrl = `https://api.thecatapi.com/v1/breeds/search?q=${breedName}`;
-
-// Make a GET request to the API endpoint
-request(apiUrl, (error, response, body) => {
-  if (error) {
-    console.error('Request error:', error);
-  } else if (response.statusCode !== 200) {
-    console.error(`Received non-200 status code: ${response.statusCode}`);
-  } else {
-    // Parse the response body into a JavaScript object
-    const data = JSON.parse(body);
-
-    if (data.length > 0) {
-      // Breed found, print breed information
-      const breedInfo = data[0];
-      console.log(`${breedInfo.name}: ${breedInfo.description}`);
+  // Make an HTTP GET request to the API endpoint
+  request(apiUrl, (error, response, body) => {
+    if (error) {
+      callback(error, null); // Pass the error to the callback
+    } else if (response.statusCode !== 200) {
+      callback(`Received non-200 status code: ${response.statusCode}`, null);
     } else {
-      // Breed not found
-      console.log('Breed not found.');
+      // Parse the response body into a JavaScript object
+      const data = JSON.parse(body);
+      if (data.length > 0) {
+        const breedInfo = data[0];
+        callback(null, `${breedInfo.name}: ${breedInfo.description}`); // Pass breed description to the callback
+      } else {
+        callback('Breed not found.', null); // Handle case where breed is not found
+      }
     }
-  }
-});
+  });
+};
 
+// Export the fetchBreedDescription function to make it available for use in other files
+module.exports = { fetchBreedDescription };
